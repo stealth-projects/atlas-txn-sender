@@ -29,6 +29,7 @@ use tracing::{error, info};
 use transaction_store::TransactionStoreImpl;
 use txn_sender::TxnSenderImpl;
 use yellowstone_grpc_client::GeyserGrpcClient;
+use figment_file_env_provider::FileEnv;
 
 #[derive(Debug, Deserialize)]
 struct AtlasTxnSenderEnv {
@@ -57,7 +58,20 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Init metrics/logging
-    let env: AtlasTxnSenderEnv = Figment::from(Env::raw()).extract().unwrap();
+    let env: AtlasTxnSenderEnv = Figment::new()
+        .merge(FileEnv::from_env(Env::prefixed("APP_")))
+        .extract()?;
+
+    // convert this to string
+    // let grpc_url: String = "http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string();
+    // let rpc_url: String = "http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string();
+  
+    let grpc_url = env.grpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string()); // env.grpc_url.clone().unwrap();
+    let rpc_url = env.rpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com".to_string()); // env.rpc_url.clone().unwrap();
+
+    // print the grpc url of the .env
+    println!("grpc_url: {:?}", grpc_url);
+    
     let env_filter = env::var("RUST_LOG")
         .or::<Result<String, ()>>(Ok("info".to_string()))
         .unwrap();
@@ -105,12 +119,14 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let client = Arc::new(RwLock::new(
-        GeyserGrpcClient::connect::<String, String>(env.grpc_url.unwrap(), env.x_token, None)
+        GeyserGrpcClient::connect::<String, String>(grpc_url, env.x_token, None)
             .unwrap(),
     ));
+
     let transaction_store = Arc::new(TransactionStoreImpl::new());
     let solana_rpc = Arc::new(GrpcGeyserImpl::new(client));
-    let rpc_client = Arc::new(RpcClient::new(env.rpc_url.unwrap()));
+    let rpc_client = Arc::new(RpcClient::new(rpc_url));
+
     let num_leaders = env.num_leaders.unwrap_or(2);
     let leader_offset = env.leader_offset.unwrap_or(0);
     let leader_tracker = Arc::new(LeaderTrackerImpl::new(
