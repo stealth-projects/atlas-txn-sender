@@ -62,10 +62,6 @@ async fn main() -> anyhow::Result<()> {
         .merge(FileEnv::from_env(Env::prefixed("APP_")))
         .extract()?;
 
-    // convert this to string
-    // let grpc_url: String = "http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string();
-    // let rpc_url: String = "http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string();
-  
     let grpc_url = env.grpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string()); // env.grpc_url.clone().unwrap();
     let rpc_url = env.rpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com".to_string()); // env.rpc_url.clone().unwrap();
 
@@ -84,7 +80,7 @@ async fn main() -> anyhow::Result<()> {
     let service_builder = tower::ServiceBuilder::new()
         // Proxy `GET /health` requests to internal `health` method.
         .layer(ProxyGetRequestLayer::new("/health", "health")?);
-    let port = env.port.unwrap_or(4040);
+    let port = env.port.unwrap_or(8000);
 
     let server = ServerBuilder::default()
         .set_middleware(service_builder)
