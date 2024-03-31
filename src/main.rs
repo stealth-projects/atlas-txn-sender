@@ -75,7 +75,8 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(env_filter)
         .json()
         .init();
-    // new_metrics_client();
+    
+    new_metrics_client();
 
     let service_builder = tower::ServiceBuilder::new()
         // Proxy `GET /health` requests to internal `health` method.
