@@ -13,7 +13,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, UdpSocket},
     sync::Arc,
 };
-
+use dotenv::dotenv;
 use cadence::{BufferedUdpMetricSink, QueuingMetricSink, StatsdClient};
 use cadence_macros::set_global_default;
 use figment::{providers::Env, Figment};
@@ -58,10 +58,13 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Init metrics/logging
-    let env: AtlasTxnSenderEnv = Figment::new()
-        .merge(FileEnv::from_env(Env::prefixed("APP_")))
-        .extract()?;
+    dotenv().ok(); 
 
+    let env: AtlasTxnSenderEnv = Figment::from(Env::raw()).extract().unwrap();
+    let env_filter = env::var("RUST_LOG")
+        .or::<Result<String, ()>>(Ok("info".to_string()))
+        .unwrap();
+    
     let grpc_url = env.grpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com:4001".to_string()); // env.grpc_url.clone().unwrap();
     let rpc_url = env.rpc_url.unwrap_or("http://gladdest-nincompooperies-EV3s9PJgKp.helius-rpc.com".to_string()); // env.rpc_url.clone().unwrap();
 

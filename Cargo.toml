@@ -45,6 +45,7 @@ futures-sink = "0.3.30"
 rand = "0.8.5"
 indexmap = "2.2.5"
 figment_file_env_provider = { version = "0.2" }
+dotenv = "0.15.0"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
