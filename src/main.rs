@@ -75,12 +75,12 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(env_filter)
         .json()
         .init();
-    new_metrics_client();
+    // new_metrics_client();
 
     let service_builder = tower::ServiceBuilder::new()
         // Proxy `GET /health` requests to internal `health` method.
         .layer(ProxyGetRequestLayer::new("/health", "health")?);
-    let port = env.port.unwrap_or(8000);
+    let port = env.port.unwrap_or(8001);
 
     let server = ServerBuilder::default()
         .set_middleware(service_builder)
